@@ -1,0 +1,26 @@
+name: Fetch latest data
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 1 * * *'
+
+jobs:
+  gather:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out this repo
+      uses: actions/checkout@v2
+    - name: Get data
+      run: |-
+        mkdir -p data
+        wget -q -O data/power_plants.csv "https://raw.githubusercontent.com/wri/global-power-plant-database/master/output_database/global_power_plant_database.csv"
+    - name: Commit and push UK data if it changed
+      run: |-
+        git config user.name "Automated"
+        git config user.email "actions@users.noreply.github.com"
+        git add -A
+        timestamp=$(date -u)
+        git commit -m "Latest UK data: ${timestamp}" || exit 0
+        git push
